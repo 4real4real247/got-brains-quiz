@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react"; // CHANGED: Added useEffect
 import { questions } from "./QuizData";
 import BrainConfetti from "./BrainConfetti";
 import VictoryScreen from "./VictoryScreen"; // NEW: Import VictoryScreen
+import LoserScreen from "./LoserScreen";
 import "../App.css";
 
 const levels = ["easy", "medium", "hard"];
@@ -18,6 +19,7 @@ const QuizGame = () => {
   const [passedLevel, setPassedLevel] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showVictory, setShowVictory] = useState(false); // NEW: State for victory screen
+  const [showLoser, setShowLoser] = useState(false);
 
   const currentLevel = levels[levelIndex];
 
@@ -52,6 +54,8 @@ const QuizGame = () => {
       // 🎉 TRIGGER CONFETTI IF PASSED! 🎉
       if (passed) {
         setShowConfetti(true);
+      } else {
+        setShowLoser(true);
       }
 
       setShowResult(true);
@@ -106,11 +110,21 @@ const QuizGame = () => {
     setPassedLevel(false);
     setShowConfetti(false);
     setShowVictory(false);
+    setShowLoser(false);
+  };
+
+  const handleLoserRetry = () => {
+    handleRestartLevel();
+    setShowLoser(false);
   };
 
   // NEW: Show Victory Screen
   if (showVictory) {
     return <VictoryScreen onRestart={handleCompleteRestart} />;
+  }
+  //Show Loser Screen
+  if (showLoser) {
+    return <LoserScreen onRetry={handleLoserRetry} />;
   }
 
   if (!currentQuestion && !showResult) {
