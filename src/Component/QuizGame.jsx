@@ -1,13 +1,14 @@
 // src/QuizGame.jsx
-import React, { useState, useEffect } from "react"; // CHANGED: Added useEffect
+import React, { useState, useEffect } from "react";
 import { questions } from "./QuizData";
 import BrainConfetti from "./BrainConfetti";
-import VictoryScreen from "./VictoryScreen"; // NEW: Import VictoryScreen
+import VictoryScreen from "./VictoryScreen";
 import LoserScreen from "./LoserScreen";
 import "../App.css";
 
 const levels = ["easy", "medium", "hard"];
 const PASS_PERCENT = 70;
+const QUESTION_TIME = 15; // seconds per question
 
 const QuizGame = () => {
   const [levelIndex, setLevelIndex] = useState(0); // 0 = easy
@@ -18,8 +19,10 @@ const QuizGame = () => {
   const [showResult, setShowResult] = useState(false);
   const [passedLevel, setPassedLevel] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [showVictory, setShowVictory] = useState(false); // NEW: State for victory screen
+  const [showVictory, setShowVictory] = useState(false);
   const [showLoser, setShowLoser] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(QUESTION_TIME);
+  const [gameStarted, setGameStarted] = useState(false); // NEW
 
   const currentLevel = levels[levelIndex];
 
@@ -27,6 +30,11 @@ const QuizGame = () => {
 
   const totalQuestions = levelQuestions.length;
   const currentQuestion = levelQuestions[currentQuestionIndex];
+
+  const handleStartGame = () => {
+    setGameStarted(true);
+    setTimeLeft(QUESTION_TIME); // ensure full time when starting
+  };
 
   const handleAnswer = () => {
     if (selectedOption === null) return;
@@ -44,14 +52,14 @@ const QuizGame = () => {
     if (nextIndex < totalQuestions) {
       setCurrentQuestionIndex(nextIndex);
       setSelectedOption(null);
+      setTimeLeft(QUESTION_TIME); // reset timer for next question
     } else {
       const finalScore = score + (isCorrect ? 1 : 0); // include last question
-      const percent = (finalScore / totalQuestions) * 100;
+      const percent = totalQuestions ? (finalScore / totalQuestions) * 100 : 0;
       const passed = percent >= PASS_PERCENT;
       setPassedLevel(passed);
-      setScore(finalScore); // ensure state holds final score
+      setScore(finalScore);
 
-      // 🎉 TRIGGER CONFETTI IF PASSED! 🎉
       if (passed) {
         setShowConfetti(true);
       } else {
@@ -62,16 +70,59 @@ const QuizGame = () => {
     }
   };
 
-  // NEW: Show victory screen after confetti finishes on hard level
+  // TIMER EFFECT: countdown for each question, only when gameStarted
   useEffect(() => {
-    if (passedLevel && levelIndex === 2 && showConfetti) {
-      const timer = setTimeout(() => {
-        setShowVictory(true);
-      }, 4000); // Wait for confetti to finish
+    if (!gameStarted) return; // don't run timer until Start clicked
+    if (showResult || showVictory || showLoser) return;
+    if (!currentQuestion) return;
 
-      return () => clearTimeout(timer);
+    if (timeLeft <= 0) {
+      // Time is up: count as wrong and move on
+      const isLastQuestion = currentQuestionIndex + 1 >= totalQuestions;
+
+      setWrong((prev) => prev + 1);
+
+      if (!isLastQuestion) {
+        setCurrentQuestionIndex((prev) => prev + 1);
+        setSelectedOption(null);
+        setTimeLeft(QUESTION_TIME);
+      } else {
+        const finalScore = score; // no extra correct
+        const percent = totalQuestions
+          ? (finalScore / totalQuestions) * 100
+          : 0;
+        const passed = percent >= PASS_PERCENT;
+        setPassedLevel(passed);
+        setScore(finalScore);
+
+        if (passed) {
+          setShowConfetti(true);
+        } else {
+          setShowLoser(true);
+        }
+
+        setShowResult(true);
+      }
+
+      return;
     }
-  }, [passedLevel, levelIndex, showConfetti]);
+
+    const timerId = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timerId);
+  }, [
+    gameStarted,
+    timeLeft,
+    showResult,
+    showVictory,
+    showLoser,
+    currentQuestion,
+    currentQuestionIndex,
+    totalQuestions,
+    score,
+  ]);
 
   const handleRestartLevel = () => {
     setScore(0);
@@ -80,12 +131,14 @@ const QuizGame = () => {
     setCurrentQuestionIndex(0);
     setShowResult(false);
     setPassedLevel(false);
-    setShowConfetti(false); // Reset confetti
+    setShowConfetti(false);
+    setShowLoser(false);
+    setTimeLeft(QUESTION_TIME);
+    setGameStarted(false); // go back to Start screen
   };
 
   const handleNextLevel = () => {
     if (levelIndex === levels.length - 1) {
-      // restart from easy if at hard
       setLevelIndex(0);
     } else {
       setLevelIndex((prev) => prev + 1);
@@ -96,10 +149,12 @@ const QuizGame = () => {
     setCurrentQuestionIndex(0);
     setShowResult(false);
     setPassedLevel(false);
-    setShowConfetti(false); // Reset confetti
+    setShowConfetti(false);
+    setShowLoser(false);
+    setTimeLeft(QUESTION_TIME);
+    setGameStarted(false); // require Start again on next level
   };
 
-  // NEW: Handle complete restart from victory screen
   const handleCompleteRestart = () => {
     setLevelIndex(0);
     setScore(0);
@@ -111,18 +166,20 @@ const QuizGame = () => {
     setShowConfetti(false);
     setShowVictory(false);
     setShowLoser(false);
+    setTimeLeft(QUESTION_TIME);
+    setGameStarted(false);
   };
 
   const handleLoserRetry = () => {
     handleRestartLevel();
-    setShowLoser(false);
   };
 
-  // NEW: Show Victory Screen
+  // Show Victory Screen
   if (showVictory) {
     return <VictoryScreen onRestart={handleCompleteRestart} />;
   }
-  //Show Loser Screen
+
+  // Show Loser Screen
   if (showLoser) {
     return <LoserScreen onRetry={handleLoserRetry} />;
   }
@@ -199,7 +256,6 @@ const QuizGame = () => {
           </div>
         </div>
 
-        {/* 🧠 ADD CONFETTI COMPONENT HERE 🧠 */}
         <BrainConfetti
           active={showConfetti}
           duration={4000}
@@ -212,9 +268,29 @@ const QuizGame = () => {
     );
   }
 
-  // helper for difficulty badge class
   const difficultyClass = `question-difficulty ${currentLevel}`;
 
+  // Start Screen (before gameStarted)
+  if (!gameStarted) {
+    return (
+      <div className="game-container">
+        <div className="game-header">
+          <h1 className="game-title">Got Brains 🧠 Quiz</h1>
+          <span className="level-pill">
+            Level: {currentLevel.toUpperCase()}
+          </span>
+        </div>
+
+        <button className="game-button" onClick={handleStartGame}>
+          Start Quiz
+        </button>
+
+        <div className="game-footer-glow" />
+      </div>
+    );
+  }
+
+  // Main Quiz UI (after Start clicked)
   return (
     <div className="game-container">
       {/* Header */}
@@ -238,6 +314,10 @@ const QuizGame = () => {
         <div className="stat-badge">
           <span className="stat-label">Wrong</span>
           <span className="stat-value">{wrong}</span>
+        </div>
+        <div className="stat-badge">
+          <span className="stat-label">Time</span>
+          <span className="stat-value">{timeLeft}s</span>
         </div>
       </div>
 

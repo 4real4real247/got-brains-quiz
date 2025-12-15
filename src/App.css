@@ -97,7 +97,7 @@ body {
 
 .stat-badge {
   flex: 1;
-  padding: 8px 10px;
+  padding: 9px 10px;
   border-radius: 999px;
   background: rgba(15, 23, 42, 0.9);
   border: 1px solid rgba(148, 163, 184, 0.5);
@@ -442,4 +442,28 @@ body {
   .game-title {
     font-size: 1.7rem;
   }
+}
+/* Emoji background pattern */
+/* Emoji background pattern */
+body::before {
+  content: "🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️ 🧠 🧟‍♂️";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  font-size: 3rem;
+  line-height: 4rem;
+  word-wrap: break-word;
+  opacity: 0.13;
+  pointer-events: none;
+  z-index: 0;
+  padding: 2rem;
+  overflow: hidden;
+}
+
+/* Ensure game container stays above background */
+#root {
+  position: relative;
+  z-index: 1;
 }
