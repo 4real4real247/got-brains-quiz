@@ -60,13 +60,14 @@ const QuizGame = () => {
       setPassedLevel(passed);
       setScore(finalScore);
 
-      if (passed) {
+      if (passed && levelIndex === levels.length - 1) {
+        setShowVictory(true);
+      } else if (passed) {
         setShowConfetti(true);
+        setShowResult(true);
       } else {
         setShowLoser(true);
       }
-
-      setShowResult(true);
     }
   };
 
@@ -95,13 +96,14 @@ const QuizGame = () => {
         setPassedLevel(passed);
         setScore(finalScore);
 
-        if (passed) {
+        if (passed && levelIndex === levels.length - 1) {
+          setShowVictory(true);
+        } else if (passed) {
           setShowConfetti(true);
+          setShowResult(true);
         } else {
           setShowLoser(true);
         }
-
-        setShowResult(true);
       }
 
       return;
